@@ -60,12 +60,8 @@ impl Board<'_> {
     }
 
 
-    // --------------------------------------------------
-    // --------------- PRIVATE FUNCTIONS ----------------
-    // --------------------------------------------------
 
-
-    fn draw_board(&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
+    pub fn draw_board(&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
         let mut alternate: u8 = 0;
 
         let case_height: i32 = height / self.size as i32;
@@ -89,7 +85,7 @@ impl Board<'_> {
         }
     }
 
-    fn draw_pieces (&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
+    pub fn draw_pieces (&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
         let case_height: i32 = height / self.size as i32;
         let case_width: i32 = width / self.size as i32;
 
@@ -121,6 +117,11 @@ impl Board<'_> {
         }
 
     }
+
+    // --------------------------------------------------
+    // --------------- PRIVATE FUNCTIONS ----------------
+    // --------------------------------------------------
+
 
     fn fen_init(&mut self, notation: String)
     {
