@@ -36,11 +36,17 @@ impl Board<'_> {
         }
     }
 
-    pub fn get (&self, y: usize, x: usize) -> Option<Piece> {
+    pub fn get(&self, y: usize, x: usize) -> Option<Piece> {
         if y >= self.size || x >= self.size {
             return None;
         }
         self.board[y * self.size + x]
+    }
+    pub fn get_square(&self, square: usize) -> Option<Piece> {
+        if square >= self.size * self.size {
+            return None;
+        }
+        self.board[square]
     }
 
     pub fn set(&mut self, y: usize, x: usize, value: Option<Piece>) {
@@ -56,7 +62,8 @@ impl Board<'_> {
     }
     
     pub fn init(&mut self) {
-        self.fen_init(String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"));
+        let fen = String::from("r1b1qb1r/8/8/8/8/8/8/R1B1QB1R");
+        self.fen_init(fen);//String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"));
     }
 
 

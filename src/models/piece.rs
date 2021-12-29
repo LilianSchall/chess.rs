@@ -1,5 +1,7 @@
 use crate::common::Misc;
 
+use super::r#move::Move;
+
 use sdl2::render::Texture;
 use sdl2::render::TextureCreator;
 use sdl2::render::WindowCanvas;
@@ -24,10 +26,11 @@ pub enum PColor {
     BLACK
 }
 
-#[derive(Eq, PartialEq, Copy, Clone)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub struct Piece {
     pub r#type: PieceType, //state's name is type
     pub color: PColor,
+    pub id: u8
 }
 
 pub struct PieceTextures<'a> {
@@ -38,22 +41,24 @@ pub struct PieceTextures<'a> {
 
 
 impl Piece {
-    pub fn new(symbol: char) -> Option<Piece> {
+    pub fn new<'a>(symbol: char) -> Option<Piece> {
         let color = if !Misc::islowercase(symbol) {PColor::WHITE} 
                     else {PColor::BLACK};
 
         let t = match symbol.to_lowercase().last().unwrap() {
-            'p' => {PieceType::PAWN},
-            'n' => {PieceType::KNIGHT},
-            'b' => {PieceType::BISHOP},
-            'r' => {PieceType::ROOK},
-            'k' => {PieceType::KING},
-            'q' => {PieceType::QUEEN},
+            'p' => {(PieceType::PAWN,1)},
+            'n' => {(PieceType::KNIGHT,2)},
+            'b' => {(PieceType::BISHOP,3)},
+            'r' => {(PieceType::ROOK,4)},
+            'k' => {(PieceType::KING,5)},
+            'q' => {(PieceType::QUEEN,6)},
             _   => {return None}
         };
+        let id: u8 = if color == PColor::BLACK {8} else {16} | t.1;
         Some(Piece {
-            r#type: t,
-            color: color
+            r#type: t.0,
+            color: color,
+            id: id
         })
     }
 
@@ -96,5 +101,26 @@ impl Piece {
             white_textures: white
         }
 
+    }
+
+    pub fn is_sliding_piece(&self) -> bool {
+        self.r#type == PieceType::QUEEN ||
+            self.r#type == PieceType::BISHOP ||
+            self.r#type == PieceType::ROOK
+    }
+
+    pub fn is_type(&self, r#type: PieceType) -> bool {
+        self.r#type == r#type
+    }
+
+    pub fn is_color(&self, color: PColor) -> bool {
+        self.color == color
+    }
+
+    pub fn is_ennemy(&self, piece: Option<Piece>) -> bool {
+        match piece {
+            None => {false},
+            Some(p) => {p.color != self.color}
+        }
     }
 }

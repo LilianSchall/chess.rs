@@ -1,58 +1,58 @@
+
 use super::board::Board;
 use super::piece::Piece;
 use super::piece::PColor;
+use super::sound::Sound;
+use super::r#move::{MoveGenerator, MoveAction, Move};
 
 use sdl2::pixels::Color;
 use sdl2::render::{WindowCanvas, TextureCreator};
 use sdl2::rect::Rect;
 use sdl2::video::WindowContext;
-use sdl2::mixer::Music;
 
 use std::collections::HashMap;
 
 pub struct Game<'a> {
+    //board structure: used for piece placement and display
     pub board: Board<'a>,
     
+    //Color of the player that is currently playing,
+    //Used for recognition of which pieces can be played 
     pub current_player: PColor,
     
+    // piece states, used in order to know which piece is currently being
+    // hold by the player
     pub piece_hold: Option<Piece>,
-    pub x: i32,
-    pub y: i32,
+    pub x: usize,
+    pub y: usize,
     
-    pub last_move: Option<((i32,i32),(i32,i32))>,
+    // visual fx: used in order to display the last move on the board
+    pub last_move: Option<Move>,
     
-    pub sounds: HashMap<String, Music<'a>>
+    // algorithmic states: used to generate moves for the pieces according
+    // to chess rules
+    possible_moves: HashMap<usize,Vec<Move>>,
+    move_generator: MoveGenerator
+    
+
 }
 
 impl Game<'_> {
     pub fn new<'a>(renderer: &'a TextureCreator<WindowContext>) -> Game<'a> {
         let mut board = Board::new(renderer);
         board.init();
-
-        let mut sounds: HashMap<String, Music> = HashMap::new();
-        sounds.insert(String::from("castling"), 
-                      Music::from_file("sound/castling.mp3").unwrap());
-        sounds.insert(String::from("check"),
-                      Music::from_file("sound/check.mp3").unwrap());
-        sounds.insert(String::from("move"),
-                      Music::from_file("sound/placement.mp3").unwrap());
-        sounds.insert(String::from("starting_game"),
-                      Music::from_file("sound/starting_game.mp3").unwrap());
-        sounds.insert(String::from("take"),
-                      Music::from_file("sound/taking.mp3").unwrap());
-        sounds.insert(String::from("game_over"),
-                      Music::from_file("sound/game_over.mp3").unwrap());
-        
-        sounds.get("starting_game").unwrap().play(1);
-
+        let player = PColor::WHITE;
+        let generator = MoveGenerator::new();
+        let possible_moves = generator.GenerateMoves(&board,player);
         Game {
             board: board,
-            current_player: PColor::WHITE,
+            current_player: player,
             piece_hold: None,
-            x: -1,
-            y: -1,
+            x: 0,
+            y: 0,
             last_move: None,
-            sounds: sounds
+            possible_moves: possible_moves,
+            move_generator: generator
         }
     }
 
@@ -60,57 +60,56 @@ impl Game<'_> {
         let i: usize = self.board.size * y as usize / height as usize;
         let j: usize = self.board.size * x as usize / width as usize;
         
-        let selected = self.board.get(i,j);
+        let selected: Option<Piece> = self.board.get(i,j);
         println!("found coordinate: ({},{})", j,i);
         match selected{
             None => {},
             Some(p) => {
                 if p.color == self.current_player {
+
                     self.piece_hold = selected;
-                    self.x = j as i32;
-                    self.y = i as i32;
+                    self.x = j;
+                    self.y = i;
+                    println!("x: {}, y:{}", self.x, self.y);
                     self.board.set(i,j,None);
                 }
             }
         }
     }
 
-    pub fn make_move(&mut self, x: i32, y: i32, width: u32, height: u32) {
+    pub fn make_move(&mut self, x: i32, y: i32, 
+                     width: u32, height: u32, sound: &Sound) {
         if self.piece_hold == None {
             return;
         }
         let i: usize = self.board.size * y as usize / height as usize;
         let j: usize = self.board.size * x as usize / width as usize;
         
-        let selected = self.board.get(i,j);
-        let mut move_made: bool = false;
-        match selected {
-            None => {
-                self.board.set(i,j,self.piece_hold);
-                move_made = self.x as usize != j ||  self.y as usize != i;
-                if (move_made) {
-                                self.sounds.get("move").unwrap().play(1);
-                }
+        let start: usize = self.y * self.board.size + self.x;
+        let end: usize = i * self.board.size + j;
+        
+
+        println!("start given: {}, end: given: {}", start, end);
+        let move_made = Move::is_valid(start, end,
+                        &mut self.board, self.piece_hold.unwrap(),
+                        &self.possible_moves);
+        
+        match move_made {
+            MoveAction::MOVE => {
+                sound.play("move");
             },
-            Some(p) => {
-                if (p.color != self.current_player) {
-                    self.board.set(i,j,self.piece_hold);
-                    self.sounds.get("take").unwrap().play(1);
-                    move_made = true;
-                }
-                else {
-                    self.board.set(self.y as usize, self.x as usize, self.piece_hold);
-                }
+            MoveAction::TAKE => {
+                sound.play("take");
+            },
+            MoveAction::INCORRECT => {
+                self.board.set(self.y,self.x,self.piece_hold);
+                self.reset_hold_piece_states();
             }
         }
-        if move_made {
-            self.switch_player();
-            self.last_move = Some(((self.x,self.y),(j as i32,i as i32)));
-        }
-        self.piece_hold = None;
-        self.x = -1;
-        self.y = -1;
 
+        if move_made != MoveAction::INCORRECT {
+            self.update_after_move(start, end);
+        }
     }
 
     pub fn draw(&self, canvas: &mut WindowCanvas, width: i32, height: i32,
@@ -125,9 +124,9 @@ impl Game<'_> {
     // --------------------------------------------------
     // --------------- PRIVATE FUNCTIONS ----------------
     // --------------------------------------------------
-    
+
     fn switch_player(&mut self) {
-        self.current_player = if (self.current_player == PColor::WHITE) 
+        self.current_player = if self.current_player == PColor::WHITE 
             {PColor::BLACK} else {PColor::WHITE};
 
     }
@@ -165,24 +164,52 @@ impl Game<'_> {
     fn draw_last_move(&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
         match self.last_move {
             None => {},
-            Some(((x1,y1),(x2,y2))) => {
+            Some(m) => {
                 let case_height: i32 = height / self.board.size as i32;
                 let case_width: i32 = width / self.board.size as i32;
                 
 
                 canvas.set_draw_color(Color::RGBA(0, 255, 0, 30));
-                canvas.fill_rect(Rect::new(x1 * case_width,
-                                           y1 * case_height,
+                canvas.fill_rect(Rect::new((m.start % self.board.size) as i32
+                                           * case_width,
+                                           (m.start / self.board.size) as i32
+                                           * case_height,
                                            case_width as u32,
                                            case_height as u32));
                 
                 canvas.set_draw_color(Color::RGBA(255, 255, 0, 30));
-                canvas.fill_rect(Rect::new(x2 * case_width,
-                                           y2 * case_height,
+                canvas.fill_rect(Rect::new((m.end % self.board.size) as i32
+                                           * case_width,
+                                           (m.end / self.board.size) as i32
+                                           * case_height,
                                            case_width as u32,
                                            case_height as u32));
 
             }
         }
     }
+    fn update_after_move(&mut self, start: usize, end: usize) {
+        self.switch_player();
+        self.update_last_move(start, end);
+        self.update_new_moves();
+        self.reset_hold_piece_states();
+    }
+
+
+    fn update_new_moves(&mut self) {
+        self.possible_moves = self.move_generator.GenerateMoves(
+            &self.board, self.current_player);
+    }
+
+    fn update_last_move(&mut self, start: usize, end: usize) {
+        self.last_move = Some(Move::new(start, end));
+    }
+
+    fn reset_hold_piece_states(&mut self) {
+        self.piece_hold = None;
+        self.x = 0;
+        self.y = 0;
+    }
 }
+
+

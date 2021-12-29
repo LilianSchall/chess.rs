@@ -1,9 +1,8 @@
 mod models;
 mod common;
 
-use models::board::Board;
 use models::game::Game;
-
+use models::sound::Sound;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -16,9 +15,6 @@ use std::time::Duration;
 static WIDTH: u32 = 900;
 static HEIGHT: u32 = 900;
 
-fn render(canvas: &mut WindowCanvas) {
-    canvas.present();
-}
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -54,8 +50,7 @@ fn main() {
     let chunk_size = 1_024;
     sdl2::mixer::open_audio(frequency, format, channels, chunk_size).unwrap();
     let _mixer_context =
-        sdl2::mixer::init(InitFlag::MP3 | InitFlag::FLAC |
-                          InitFlag::MOD | InitFlag::OGG).unwrap();
+        sdl2::mixer::init(InitFlag::MP3).unwrap();
 
     // Number of mixing channels available for sound effect `Chunk`s to play
     // simultaneously.
@@ -66,6 +61,9 @@ fn main() {
     // --------------------------------------------------
 
     let mut game: Game = Game::new(&renderer);
+    let sound: Sound = Sound::new();
+
+    sound.play("starting_game");
 
     let mut mouse_x: i32 = 0;
     let mut mouse_y: i32 = 0;
@@ -88,7 +86,7 @@ fn main() {
                 },
                 Event::MouseButtonUp {mouse_btn: MouseButton::Left, 
                                         x: x, y: y, ..} => {
-                    game.make_move(x, y, WIDTH, HEIGHT);
+                    game.make_move(x, y, WIDTH, HEIGHT, &sound);
                 },
                 Event::MouseMotion{x, y, .. } => {
                     mouse_x = x;
