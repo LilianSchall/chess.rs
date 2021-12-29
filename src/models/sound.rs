@@ -26,7 +26,7 @@ impl Sound<'_> {
 
     fn generate_sound<'a>() -> HashMap<String, Music<'a>> {
         let mut sounds: HashMap<String, Music> = HashMap::new();
-            sounds.insert(String::from("castling"), 
+            sounds.insert(String::from("castle"), 
                         Music::from_file("sound/castling.mp3").unwrap());
             sounds.insert(String::from("check"),
                         Music::from_file("sound/check.mp3").unwrap());

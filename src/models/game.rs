@@ -62,7 +62,6 @@ impl Game<'_> {
         let j: usize = self.board.size * x as usize / width as usize;
         
         let selected: Option<Piece> = self.board.get(i,j);
-        println!("found coordinate: ({},{})", j,i);
         match selected{
             None => {},
             Some(p) => {
@@ -71,7 +70,6 @@ impl Game<'_> {
                     self.piece_hold = selected;
                     self.x = j;
                     self.y = i;
-                    println!("x: {}, y:{}", self.x, self.y);
                     self.board.set(i,j,None);
                 }
             }
@@ -90,9 +88,8 @@ impl Game<'_> {
         let end: usize = i * self.board.size + j;
         
 
-        println!("start given: {}, end: given: {}", start, end);
         let move_made = Move::is_valid(start, end,
-                        &mut self.board, self.piece_hold.unwrap(),
+                        &mut self.board, &mut self.piece_hold.unwrap(),
                         &self.possible_moves);
         
         match move_made {
@@ -102,10 +99,14 @@ impl Game<'_> {
             MoveAction::TAKE => {
                 sound.play("take");
             },
+            MoveAction::CASTLE => {
+                sound.play("castle");
+            },
             MoveAction::INCORRECT => {
                 self.board.set(self.y,self.x,self.piece_hold);
                 self.reset_hold_piece_states();
             }
+
         }
 
         if move_made != MoveAction::INCORRECT {

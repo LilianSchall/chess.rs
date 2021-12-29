@@ -26,7 +26,16 @@ pub mod Misc {
 
 pub mod MoveData {
     use crate::common::Misc::min;
-    
+
+    pub const NORTH: usize = 0;
+    pub const SOUTH: usize = 1;
+    pub const WEST: usize  = 2;
+    pub const EAST: usize  = 3;
+
+    pub const NORTH_WEST: usize  = 4;
+    pub const SOUTH_EAST: usize  = 5;
+    pub const NORTH_EAST: usize  = 6;
+    pub const SOUTH_WEST: usize  = 7;
     //first 4 digits, move for column and line movements
     //last 4 digits, move for diagonals movements
     pub const DIRECTION_OFFSET: [i8; 8] = [-8,8, -1, 1, -9, 9, -7, 7];

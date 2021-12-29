@@ -30,7 +30,8 @@ pub enum PColor {
 pub struct Piece {
     pub r#type: PieceType, //state's name is type
     pub color: PColor,
-    pub id: u8
+    pub id: u8,
+    pub can_castle: bool
 }
 
 pub struct PieceTextures<'a> {
@@ -58,7 +59,8 @@ impl Piece {
         Some(Piece {
             r#type: t.0,
             color,
-            id
+            id,
+            can_castle: t.0 == PieceType::KING || t.0 == PieceType::ROOK
         })
     }
 
@@ -128,6 +130,13 @@ impl Piece {
         match piece {
             None => {false},
             Some(p) => {p.color == self.color}
+        }
+    }
+
+    pub fn can_castle(piece: Option<Piece>) -> bool {
+        match piece {
+            None => {false},
+            Some(p) => {p.can_castle}
         }
     }
 }

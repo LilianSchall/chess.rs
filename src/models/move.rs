@@ -1,5 +1,10 @@
 use crate::common::MoveData::{precomputed_move_data, DIRECTION_OFFSET};
-
+use crate::common::MoveData::{
+    NORTH,SOUTH,WEST,EAST,
+    NORTH_WEST,NORTH_EAST,
+    SOUTH_WEST,SOUTH_EAST
+};
+use crate::common::Misc;
 use super::piece::{Piece, PieceType, PColor};
 use super::board::Board;
 
@@ -16,6 +21,7 @@ pub enum MoveAction {
     INCORRECT,
     MOVE,
     TAKE,
+    CASTLE,
 }
 
 impl Move {
@@ -27,15 +33,46 @@ impl Move {
     }
 
     pub fn is_valid(start: usize, end: usize, board: &mut Board,
-                    piece: Piece,
+                    piece: &mut Piece,
                     possible_moves: &HashMap<usize, Vec<Move>>) -> MoveAction {
         if !Move::is_in_list(start,end,&possible_moves[&start]) {
             return MoveAction::INCORRECT;
         }
 
         let selected = board.get_square(end);
-        
-        board.set(end / 8, end % 8,Some(piece));
+        let (y,x): (usize, usize) = (start / 8, start % 8);
+        let (i,j): (usize, usize) = (end / 8, end % 8);
+
+        let delta : i8 = x as i8 - j as i8;
+
+        if piece.can_castle  && Misc::abs(delta as isize) == 2 {
+            piece.can_castle = false;
+            match piece.r#type {
+                PieceType::KING => {
+                    match delta {
+                    2 => { //we castled left side
+                        board.set(y, j + 1, 
+                                board.get(y,0));
+
+                        board.set(y,0,None);
+                    }
+                    -2 => { //we castled right side
+                        board.set(y, j - 1, 
+                                board.get(y,7));
+
+                        board.set(y,7,None);
+                    }
+                    a => {println!("Wtf, help me I cannot make a simple addition.
+                                   I got a delta of {} when castling in x",a);}
+                }
+                    board.set(i, j,Some(*piece));
+                    return MoveAction::CASTLE;
+                }
+                _ => {}
+            }
+        }
+        board.set(i, j,Some(*piece));
+
 
         match selected {
             None => {
@@ -49,7 +86,6 @@ impl Move {
 
     fn is_in_list(start: usize, end: usize, moves: &Vec<Move>) -> bool {
         for r#move in moves {
-            println!("Move: from {} to {}", r#move.start, r#move.end);
             if r#move.start == start && r#move.end == end {
                 return true;
             }
@@ -124,7 +160,7 @@ impl MoveGenerator {
                 {
                     moves.push(Move::new(square,target as usize));
                 }
-                                   
+
             }
         }
     }
@@ -144,9 +180,9 @@ impl MoveGenerator {
         };
         let (direction,range_column,diag_left,diag_right) =
             if piece.is_color(PColor::WHITE)
-            {(DIRECTION_OFFSET[0], self.precomputed[square][0],
+            {(DIRECTION_OFFSET[NORTH], self.precomputed[square][NORTH],
                 4, 6)} 
-            else {(DIRECTION_OFFSET[1], self.precomputed[square][1],
+            else {(DIRECTION_OFFSET[SOUTH], self.precomputed[square][SOUTH],
                 7, 5)};
 
         if range_column == 0 {
@@ -184,10 +220,76 @@ impl MoveGenerator {
                 }
             }
         }
+        self.__generate_castling_move(moves, piece,
+                                      square, board);
+    }
+
+    fn __generate_castling_move(&self, moves: &mut Vec<Move>, 
+                           piece: &Piece, square: usize, board: &Board) {
+
+        if !piece.can_castle {
+            return;
+        }
+        for direction in [WEST, EAST] {
+            let mut can_castle: bool = true;
+            let sign: i8 = match direction {
+                    WEST => {-1}
+                    EAST => {1}
+                    _ => {0}
+                };
+            for index in 0 .. (self.precomputed[square][direction] -1) {
+                let target: i8 = square as i8 + sign * (index as i8 + 1);
+                if board.get_square(target as usize) != None {
+                    can_castle = false;
+                    break;
+                }
+            }
+            let y: usize = square / 8;
+            let pair = board.get(
+                y, 
+                if direction == WEST {0} else {7});
+            if can_castle && Piece::can_castle(pair){
+                let end: usize = (square as i8 + (sign * 2)) as usize;
+                moves.push(Move::new(square,end));
+            }
+        }
+                
+
+
     }
 
     fn GenerateKnightMove(&self, moves: &mut Vec<Move>, 
                            piece: &Piece, square: usize, board: &Board) {
+        for row in [-1, 1] {
+            for column in [-8, 8] {
+                let target1: i32 = (square as i32) + row + (column * 2);
+                let target2: i32 = (square as i32) + (row * 2) + column;
+                self.__generate_knight_move(
+                    moves,piece, square,target1,
+                    board);
+                self.__generate_knight_move(
+                    moves, piece, square, target2,
+                    board);
+            }
+        }
+    }
+    fn __generate_knight_move(&self, moves: &mut Vec<Move>, piece: &Piece,
+                              square: usize, target: i32, board: &Board) {
+
+        if target >= 0 && target < (board.size * board.size) as i32 {
+
+            let t: usize = target as usize;
+            let col_start: usize = square % 8;
+            let col_end: usize = t % 8;
+
+            if (col_start < 2 && col_end > 5) ||
+                (col_start > 5 && col_end < 2) {return;}
+
+            if !piece.is_ally(board.get_square(t)) {
+                    moves.push(Move::new(square, t));
+                }
+
+        }
     }
 
 }
