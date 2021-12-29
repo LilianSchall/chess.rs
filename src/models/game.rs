@@ -117,6 +117,7 @@ impl Game<'_> {
                 mouse_x: i32, mouse_y: i32) {
         self.board.draw_board(canvas, width, height);
         self.draw_last_move(canvas, width, height);
+        self.draw_possible_moves(canvas,width,height);
         self.board.draw_pieces(canvas, width, height);
         self.draw_hold(canvas, width, height,
                        mouse_x, mouse_y);
@@ -193,6 +194,24 @@ impl Game<'_> {
             }
         }
     }
+    fn draw_possible_moves(&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
+        if self.piece_hold == None {return;}
+
+        let square: usize = self.y * self.board.size + self.x;
+        let case_height: i32 = height / self.board.size as i32;
+        let case_width: i32 = width / self.board.size as i32;
+        
+        canvas.set_draw_color(Color::RGBA(255,0,0,200));
+        for m in &self.possible_moves[&square] {
+
+            CanvasDisplay::canvas_fill(
+                canvas,
+                Rect::new((m.end % self.board.size) as i32 * case_width,
+                (m.end / self.board.size) as i32 * case_height,
+                case_width as u32, case_height as u32));
+        }
+    }
+
     fn update_after_move(&mut self, start: usize, end: usize) {
         self.switch_player();
         self.update_last_move(start, end);

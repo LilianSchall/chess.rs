@@ -6,7 +6,7 @@ use models::sound::Sound;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::render::{WindowCanvas, BlendMode};
+use sdl2::render::BlendMode;
 use sdl2::mouse::MouseButton;
 use sdl2::mixer::{InitFlag, AUDIO_S32LSB, DEFAULT_CHANNELS};
 

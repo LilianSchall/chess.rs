@@ -105,7 +105,7 @@ impl MoveGenerator {
     fn GenerateSlidingMove(&self, moves: &mut Vec<Move>, 
                            piece: &Piece, square: usize, board: &Board) {
 
-        let start_index: i32 = if piece.r#type == PieceType::BISHOP {3} else {0};
+        let start_index: i32 = if piece.r#type == PieceType::BISHOP {4} else {0};
         let end_index: i32 = if piece.r#type == PieceType::ROOK {4} else {8};
 
         for index in start_index .. end_index {
@@ -175,6 +175,15 @@ impl MoveGenerator {
     
     fn GenerateKingMove(&self, moves: &mut Vec<Move>, 
                            piece: &Piece, square: usize, board: &Board) {
+        
+        for index in 0..8 {
+            if self.precomputed[square][index] != 0 {
+                let end: usize = (square as i8 + DIRECTION_OFFSET[index]) as usize;
+                if !piece.is_ally(board.get_square(end)) {
+                    moves.push(Move::new(square, end));
+                }
+            }
+        }
     }
 
     fn GenerateKnightMove(&self, moves: &mut Vec<Move>, 

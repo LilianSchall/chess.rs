@@ -123,4 +123,11 @@ impl Piece {
             Some(p) => {p.color != self.color}
         }
     }
+
+    pub fn is_ally(&self, piece: Option<Piece>) -> bool {
+        match piece {
+            None => {false},
+            Some(p) => {p.color == self.color}
+        }
+    }
 }
