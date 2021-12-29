@@ -58,7 +58,7 @@ impl Board<'_> {
     }
     
     pub fn init(&mut self) {
-        let fen = String::from("r1b1qb1r/8/8/8/8/8/8/R1B1QB1R");
+        let fen = String::from("r1b1qb1r/2pppp2/8/8/8/8/2PPPP2/R1B1QB1R");
         self.fen_init(fen);//String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"));
     }
 

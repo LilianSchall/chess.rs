@@ -87,7 +87,15 @@ impl MoveGenerator {
                                          square, board);
             }
             else {
-                
+               match piece.r#type {
+                    PieceType::PAWN => {self.GeneratePawnMove(
+                            &mut moves, &piece, square, board)},
+                    PieceType::KING => {self.GenerateKingMove(
+                            &mut moves, &piece, square, board)},
+                    PieceType::KNIGHT => {self.GenerateKnightMove(
+                            &mut moves, &piece, square, board)}
+                    _ => {}
+               }
             }
             hash.insert(square, moves);
         }    
@@ -119,6 +127,58 @@ impl MoveGenerator {
                                    
             }
         }
-    } 
+    }
+    fn GeneratePawnMove(&self, moves: &mut Vec<Move>, 
+                           piece: &Piece, square: usize, board: &Board) {
+        let nb_moves = match piece.color {
+            PColor::WHITE => {
+                if square / 8 == 6 { // if it is on the seventh row
+                    2}
+                else {1}
+            }
+            PColor::BLACK => {
+                if square / 8 == 1 { //if it is on the second row
+                    2}
+                else {1}
+            }
+        };
+        let (direction,range_column,diag_left,diag_right) =
+            if piece.is_color(PColor::WHITE)
+            {(DIRECTION_OFFSET[0], self.precomputed[square][0],
+                4, 6)} 
+            else {(DIRECTION_OFFSET[1], self.precomputed[square][1],
+                7, 5)};
+
+        if range_column == 0 {
+            return;
+        }
+
+        for n in 0..nb_moves{
+            let target = square as i8 + direction * (n + 1);
+            if board.get_square(target as usize) != None {
+                break;
+            }
+            moves.push(Move::new(square, target as usize));
+        }
+        for diag in [diag_left, diag_right] {
+            if self.precomputed[square][diag] > 0 {
+                let pos: usize = (square as i8 + 
+                                  DIRECTION_OFFSET[diag]) as usize;
+
+                if piece.is_ennemy(board.get_square(pos)){
+                    moves.push(Move::new(square,pos))
+                }
+            }
+        }
+                    
+    }
+    
+    fn GenerateKingMove(&self, moves: &mut Vec<Move>, 
+                           piece: &Piece, square: usize, board: &Board) {
+    }
+
+    fn GenerateKnightMove(&self, moves: &mut Vec<Move>, 
+                           piece: &Piece, square: usize, board: &Board) {
+    }
 
 }
