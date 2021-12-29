@@ -36,26 +36,47 @@ pub mod MoveData {
 
         for height in 0..8 {
             for width in 0 .. 8 {
-                let numNorth: i8 = height;
-                let numSouth: i8 = 7 - height;
-                let numWest: i8 = width;
-                let numEast: i8 = 7 - width;
+                let num_north: i8 = height;
+                let num_south: i8 = 7 - height;
+                let num_west: i8 = width;
+                let num_east: i8 = 7 - width;
 
-                let squareIndex: usize = height as usize * 8 + width as usize;
+                let square_index: usize = height as usize * 8 + width as usize;
 
-                data[squareIndex] = [
-                    numNorth,
-                    numSouth,
-                    numWest,
-                    numEast,
-                    min (numNorth as isize, numWest as isize) as i8,
-                    min (numSouth as isize, numEast as isize) as i8,
-                    min (numNorth as isize, numEast as isize) as i8,
-                    min (numSouth as isize, numWest as isize) as i8
+                data[square_index] = [
+                    num_north,
+                    num_south,
+                    num_west,
+                    num_east,
+                    min (num_north as isize, num_west as isize) as i8,
+                    min (num_south as isize, num_east as isize) as i8,
+                    min (num_north as isize, num_east as isize) as i8,
+                    min (num_south as isize, num_west as isize) as i8
                 ];
             }
         }
         data
+    }
+}
+
+pub mod CanvasDisplay {
+    use sdl2::rect::Rect;
+    use sdl2::render::{WindowCanvas, Texture};
+
+    pub fn canvas_fill(canvas: &mut WindowCanvas, rect: Rect) {
+        match canvas.fill_rect(rect) {
+            Ok(_) => {},
+            Err(msg) => {println!("Error: {}", msg)}
+        }
+    }
+    pub fn canvas_copy(canvas: &mut WindowCanvas, 
+                       texture: &Texture,
+                       rect1: Option<Rect>, rect2: Option<Rect>) {
+        match canvas.copy(texture, rect1, rect2) {
+            Ok(_) => {},
+            Err(msg) => {println!("Error: {}", msg)}
+        }
+
     }
 }
 

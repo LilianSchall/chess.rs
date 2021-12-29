@@ -29,7 +29,7 @@ impl Move {
     pub fn is_valid(start: usize, end: usize, board: &mut Board,
                     piece: Piece,
                     possible_moves: &HashMap<usize, Vec<Move>>) -> MoveAction {
-        if (!Move::is_in_list(start,end,&possible_moves[&start])) {
+        if !Move::is_in_list(start,end,&possible_moves[&start]) {
             return MoveAction::INCORRECT;
         }
 
@@ -41,7 +41,7 @@ impl Move {
             None => {
                 MoveAction::MOVE
             },
-            Some(p) => {
+            Some(_) => {
                 MoveAction::TAKE
             }
         }

@@ -57,15 +57,15 @@ impl Piece {
         let id: u8 = if color == PColor::BLACK {8} else {16} | t.1;
         Some(Piece {
             r#type: t.0,
-            color: color,
-            id: id
+            color,
+            id
         })
     }
 
     pub fn create_piece_textures<'a>(renderer: &'a TextureCreator<WindowContext>)->
             PieceTextures<'a> {
 
-        let tmpBlack = HashMap::from([
+        let tmp_black = HashMap::from([
                 (PieceType::PAWN, "textures/pieces/black_pawn.png"),
                 (PieceType::KNIGHT, "textures/pieces/black_knight.png"),
                 (PieceType::BISHOP, "textures/pieces/black_bishop.png"),
@@ -73,7 +73,7 @@ impl Piece {
                 (PieceType::KING, "textures/pieces/black_king.png"),
                 (PieceType::QUEEN, "textures/pieces/black_queen.png")
         ]);
-        let tmpWhite = HashMap::from([
+        let tmp_white = HashMap::from([
                 (PieceType::PAWN, "textures/pieces/white_pawn.png"),
                 (PieceType::KNIGHT, "textures/pieces/white_knight.png"),
                 (PieceType::BISHOP, "textures/pieces/white_bishop.png"),
@@ -85,18 +85,18 @@ impl Piece {
         let mut white: HashMap<PieceType, Texture> = HashMap::new();
         let mut black: HashMap<PieceType, Texture> = HashMap::new();
 
-        for (piece, path) in tmpBlack {
+        for (piece, path) in tmp_black {
             black.insert(piece, renderer.load_texture(path).unwrap());
             println!("Loaded piece at path {}", path);
         }
-        for (piece, path) in tmpWhite {
+        for (piece, path) in tmp_white {
             white.insert(piece, renderer.load_texture(path).unwrap());
              println!("Loaded piece at path {}", path);
         }
 
         
         PieceTextures {
-            renderer: renderer,
+            renderer,
             black_textures: black,
             white_textures: white
         }

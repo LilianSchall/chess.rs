@@ -3,6 +3,7 @@ use super::piece::PieceTextures;
 use super::piece::PColor;
 
 use crate::common::Misc;
+use crate::common::CanvasDisplay;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -22,13 +23,13 @@ impl Board<'_> {
         let mut board: Vec<Option<Piece>> = Vec::new();
 
         //initializing board
-        for i in 0..64 {
+        for _ in 0..64 {
             board.push(None);
         }
 
         Board {
             size: 8,
-            board: board,
+            board,
             white: Color::RGBA(234,203,164,255),
             black: Color::RGBA(185,112,68,255),
             piece_textures: Piece::create_piece_textures(renderer) 
@@ -54,11 +55,6 @@ impl Board<'_> {
             return;
         }
         self.board[y * self.size + x] = value;
-    }
-
-    pub fn draw(&self, canvas: &mut WindowCanvas, width: i32, height: i32) {
-        self.draw_board(canvas, width, height);
-        self.draw_pieces(canvas, width, height);
     }
     
     pub fn init(&mut self) {
@@ -86,8 +82,11 @@ impl Board<'_> {
                     1 => {canvas.set_draw_color(self.black)},
                     _ => {}
                 }
-                canvas.fill_rect(Rect::new(x as i32 * case_width, y as i32 * case_height,
-                                           case_width as u32, case_height as u32));
+                CanvasDisplay::canvas_fill(canvas,
+                                           Rect::new(x as i32 * case_width,
+                                            y as i32 * case_height,
+                                            case_width as u32,
+                                            case_height as u32));
             }
         }
     }
@@ -107,11 +106,15 @@ impl Board<'_> {
                                             case_height as u32);
                         match p.color {
                             PColor::WHITE => {
-                                canvas.copy(self.piece_textures.white_textures.get(&p.r#type).unwrap(),
+                                CanvasDisplay::canvas_copy(canvas,
+                                    self.piece_textures.white_textures
+                                    .get(&p.r#type).unwrap(),
                                     None, Some(rect));
                             },
                             PColor::BLACK => {
-                                canvas.copy(self.piece_textures.black_textures.get(&p.r#type).unwrap(),
+                                CanvasDisplay::canvas_copy(canvas,
+                                    self.piece_textures.black_textures
+                                    .get(&p.r#type).unwrap(),
                                     None, Some(rect));
 
                             }
@@ -133,7 +136,7 @@ impl Board<'_> {
     fn fen_init(&mut self, notation: String)
     {
         let mut index: usize = 0;
-        for (i,c) in notation.chars().enumerate() {
+        for (_,c) in notation.chars().enumerate() {
             if c == '/' {
                 println!("Skipped char /");
                 continue;

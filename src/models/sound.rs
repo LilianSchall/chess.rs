@@ -17,7 +17,10 @@ impl Sound<'_> {
     }
 
     pub fn play(&self, key: &str) {
-        self.sounds.get(key).unwrap().play(1);
+        match self.sounds.get(key).unwrap().play(1) {
+            Ok(_) => {},
+            Err(str) => {println!("Error: {}", str);}
+        }
     }
 
 

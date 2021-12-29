@@ -81,11 +81,11 @@ fn main() {
                     break 'running;
                 },
                 Event::MouseButtonDown {mouse_btn: MouseButton::Left,
-                                        x: x, y: y, ..} => {
+                                        x, y, ..} => {
                     game.select_piece(x,y, WIDTH, HEIGHT);
                 },
                 Event::MouseButtonUp {mouse_btn: MouseButton::Left, 
-                                        x: x, y: y, ..} => {
+                                        x, y, ..} => {
                     game.make_move(x, y, WIDTH, HEIGHT, &sound);
                 },
                 Event::MouseMotion{x, y, .. } => {

@@ -1,3 +1,4 @@
+use crate::common::CanvasDisplay;
 
 use super::board::Board;
 use super::piece::Piece;
@@ -45,13 +46,13 @@ impl Game<'_> {
         let generator = MoveGenerator::new();
         let possible_moves = generator.GenerateMoves(&board,player);
         Game {
-            board: board,
+            board,
             current_player: player,
             piece_hold: None,
             x: 0,
             y: 0,
             last_move: None,
-            possible_moves: possible_moves,
+            possible_moves,
             move_generator: generator
         }
     }
@@ -147,13 +148,19 @@ impl Game<'_> {
 
                 match p.color {
                             PColor::WHITE => {
-                                canvas.copy(self.board.piece_textures.white_textures.get(&p.r#type).unwrap(),
+                                CanvasDisplay::canvas_copy(
+                                    canvas,
+                                    self.board.piece_textures.white_textures
+                                    .get(&p.r#type).unwrap(),
                                     None, Some(rect));
                             },
                             PColor::BLACK => {
-                                canvas.copy(self.board.piece_textures.black_textures.get(&p.r#type).unwrap(),
+                                CanvasDisplay::canvas_copy(
+                                    canvas,
+                                    self.board.piece_textures.black_textures
+                                    .get(&p.r#type).unwrap(),
                                     None, Some(rect));
-
+ 
                             }
                 }
 
@@ -170,20 +177,18 @@ impl Game<'_> {
                 
 
                 canvas.set_draw_color(Color::RGBA(0, 255, 0, 30));
-                canvas.fill_rect(Rect::new((m.start % self.board.size) as i32
-                                           * case_width,
-                                           (m.start / self.board.size) as i32
-                                           * case_height,
-                                           case_width as u32,
-                                           case_height as u32));
+                CanvasDisplay::canvas_fill(
+                        canvas,
+                        Rect::new((m.start % self.board.size) as i32 * case_width,
+                        (m.start / self.board.size) as i32 * case_height,
+                        case_width as u32, case_height as u32));
                 
                 canvas.set_draw_color(Color::RGBA(255, 255, 0, 30));
-                canvas.fill_rect(Rect::new((m.end % self.board.size) as i32
-                                           * case_width,
-                                           (m.end / self.board.size) as i32
-                                           * case_height,
-                                           case_width as u32,
-                                           case_height as u32));
+                CanvasDisplay::canvas_fill(
+                        canvas,
+                        Rect::new((m.end % self.board.size) as i32 * case_width,
+                        (m.end / self.board.size) as i32 * case_height,
+                        case_width as u32, case_height as u32));
 
             }
         }
