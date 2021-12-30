@@ -43,13 +43,13 @@ impl Move {
         let (y,x): (usize, usize) = (start / 8, start % 8);
         let (i,j): (usize, usize) = (end / 8, end % 8);
 
-        let delta : i8 = x as i8 - j as i8;
-
-        if piece.can_castle  && Misc::abs(delta as isize) == 2 {
+        let delta_x : i8 = x as i8 - j as i8;
+        let delta_y : i8 = y as i8 - i as i8;
+        if piece.can_castle  && Misc::abs(delta_x as isize) == 2 {
             piece.can_castle = false;
             match piece.r#type {
                 PieceType::KING => {
-                    match delta {
+                    match delta_x {
                     2 => { //we castled left side
                         board.set(y, j + 1, 
                                 board.get(y,0));
@@ -69,6 +69,40 @@ impl Move {
                     return MoveAction::CASTLE;
                 }
                 _ => {}
+            }
+        }
+        else if piece.is_type(PieceType::PAWN) {
+            if Misc::abs(delta_y as isize) == 2 {
+
+                let mut tmp: Vec<(Option<Piece>, i8)> = Vec::new();
+                tmp.push((board.get(i, j + 1), 1));
+                if j != 0 {
+                    tmp.push((board.get(i, j - 1), -1));
+                }
+
+                for (adj,abs) in tmp {
+                    match adj {
+                        None => {}
+                        Some(mut p) => {
+                            if p.is_type(PieceType::PAWN) && piece.is_ennemy(adj) {
+                                p.can_en_passant = match abs {
+                                    -1 => {EAST},
+                                    1 => {WEST},
+                                    _ => {0}
+                                };
+                                //we update the pawn states
+                                board.set(i, (j as i8 + abs) as usize, Some(p));
+                            }
+                        }
+                    }
+                }
+            }
+            else if Misc::abs(delta_y as isize) == 1 &&
+                Misc::abs(delta_x as isize) ==1 {
+                
+                board.set(y,j,None);
+                board.set(i, j, Some(*piece)); 
+                return MoveAction::TAKE;
             }
         }
         board.set(i, j,Some(*piece));
@@ -106,12 +140,12 @@ impl MoveGenerator {
             precomputed,
         }
     }
-    pub fn GenerateMoves(&self, board: &Board, player_color: PColor) 
+    pub fn GenerateMoves(&self, board: &mut Board, player_color: PColor) 
         -> HashMap<usize,Vec<Move>> {
         let mut hash = HashMap::new();
         for square in 0 .. 64 {
             let mut moves: Vec<Move> = Vec::new();
-            let piece = match board.get_square(square) {
+            let mut piece = match board.get_square(square) {
                 None => {continue}
                 Some(p) => {p}
             };
@@ -124,8 +158,13 @@ impl MoveGenerator {
             }
             else {
                match piece.r#type {
-                    PieceType::PAWN => {self.GeneratePawnMove(
-                            &mut moves, &piece, square, board)},
+                    PieceType::PAWN => {
+                        if self.GeneratePawnMove(
+                            &mut moves, &mut piece, square, board) {
+
+                            board.set_square(square, Some(piece));
+                        }
+                    },
                     PieceType::KING => {self.GenerateKingMove(
                             &mut moves, &piece, square, board)},
                     PieceType::KNIGHT => {self.GenerateKnightMove(
@@ -165,7 +204,8 @@ impl MoveGenerator {
         }
     }
     fn GeneratePawnMove(&self, moves: &mut Vec<Move>, 
-                           piece: &Piece, square: usize, board: &Board) {
+                           piece: &mut Piece, 
+                           square: usize, board: &Board) -> bool {
         let nb_moves = match piece.color {
             PColor::WHITE => {
                 if square / 8 == 6 { // if it is on the seventh row
@@ -186,7 +226,7 @@ impl MoveGenerator {
                 7, 5)};
 
         if range_column == 0 {
-            return;
+            return false;
         }
 
         for n in 0..nb_moves{
@@ -206,7 +246,33 @@ impl MoveGenerator {
                 }
             }
         }
-                    
+        return self.__generate_en_passant_move(moves, piece, direction,
+                                               square, board);      
+    }
+
+    fn __generate_en_passant_move(&self, moves: &mut Vec<Move>, 
+                           piece: &mut Piece, direction: i8,
+                           square: usize, board: &Board) -> bool {
+    
+        if piece.can_en_passant == 0 {return false;}
+        
+        match piece.can_en_passant {
+            WEST => {
+                moves.push(Move::new(
+                        square,
+                        (square as i8 + direction - 1) as usize
+                        ));
+            }
+            EAST => {
+                moves.push(Move::new(
+                        square,
+                        (square as i8 + direction + 1) as usize
+                        ));
+            }
+            _ => {}
+        }
+        piece.can_en_passant = 0;
+        return true;
     }
     
     fn GenerateKingMove(&self, moves: &mut Vec<Move>, 

@@ -44,7 +44,7 @@ impl Game<'_> {
         board.init();
         let player = PColor::WHITE;
         let generator = MoveGenerator::new();
-        let possible_moves = generator.GenerateMoves(&board,player);
+        let possible_moves = generator.GenerateMoves(&mut board,player);
         Game {
             board,
             current_player: player,
@@ -223,7 +223,7 @@ impl Game<'_> {
 
     fn update_new_moves(&mut self) {
         self.possible_moves = self.move_generator.GenerateMoves(
-            &self.board, self.current_player);
+            &mut self.board, self.current_player);
     }
 
     fn update_last_move(&mut self, start: usize, end: usize) {

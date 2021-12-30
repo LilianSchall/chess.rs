@@ -56,6 +56,14 @@ impl Board<'_> {
         }
         self.board[y * self.size + x] = value;
     }
+
+    pub fn set_square(&mut self, square: usize, value: Option<Piece>) {
+        if square >= self.size * self.size {
+            return;
+        }
+        self.board[square] = value;
+    }
+
     
     pub fn init(&mut self) {
         let fen = String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");

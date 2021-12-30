@@ -31,7 +31,8 @@ pub struct Piece {
     pub r#type: PieceType, //state's name is type
     pub color: PColor,
     pub id: u8,
-    pub can_castle: bool
+    pub can_castle: bool,
+    pub can_en_passant: usize,
 }
 
 pub struct PieceTextures<'a> {
@@ -60,7 +61,8 @@ impl Piece {
             r#type: t.0,
             color,
             id,
-            can_castle: t.0 == PieceType::KING || t.0 == PieceType::ROOK
+            can_castle: t.0 == PieceType::KING || t.0 == PieceType::ROOK,
+            can_en_passant: 0
         })
     }
 
