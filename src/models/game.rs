@@ -177,15 +177,13 @@ impl Game<'_> {
                 let case_height: i32 = height / self.board.size as i32;
                 let case_width: i32 = width / self.board.size as i32;
                 
-
-                canvas.set_draw_color(Color::RGBA(0, 255, 0, 30));
+                canvas.set_draw_color(Color::RGBA(255, 255, 0, 30));
                 CanvasDisplay::canvas_fill(
                         canvas,
                         Rect::new((m.start % self.board.size) as i32 * case_width,
                         (m.start / self.board.size) as i32 * case_height,
                         case_width as u32, case_height as u32));
-                
-                canvas.set_draw_color(Color::RGBA(255, 255, 0, 30));
+
                 CanvasDisplay::canvas_fill(
                         canvas,
                         Rect::new((m.end % self.board.size) as i32 * case_width,

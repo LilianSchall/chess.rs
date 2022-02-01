@@ -30,8 +30,8 @@ impl Board<'_> {
         Board {
             size: 8,
             board,
-            white: Color::RGBA(234,203,164,255),
-            black: Color::RGBA(185,112,68,255),
+            white: Color::RGBA(234,235,203,255),
+            black: Color::RGBA(107,132,75,255),
             piece_textures: Piece::create_piece_textures(renderer) 
 
         }

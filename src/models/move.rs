@@ -71,6 +71,9 @@ impl Move {
                 _ => {}
             }
         }
+        else if (piece.can_castle) {
+            piece.can_castle = false;
+        }
         else if piece.is_type(PieceType::PAWN) {
             if Misc::abs(delta_y as isize) == 2 {
 
@@ -98,7 +101,7 @@ impl Move {
                 }
             }
             else if Misc::abs(delta_y as isize) == 1 &&
-                Misc::abs(delta_x as isize) ==1 {
+                Misc::abs(delta_x as isize) ==1 && selected == None {
                 
                 board.set(y,j,None);
                 board.set(i, j, Some(*piece)); 
